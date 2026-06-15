@@ -19,7 +19,6 @@ package com.google.samples.apps.nowinandroid.ui
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.SnackbarDuration.Indefinite
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.runtime.CompositionLocalProvider
@@ -41,6 +40,7 @@ import com.google.samples.apps.nowinandroid.core.data.util.NetworkMonitor
 import com.google.samples.apps.nowinandroid.core.data.util.TimeZoneMonitor
 import com.google.samples.apps.nowinandroid.core.designsystem.theme.NiaTheme
 import com.google.samples.apps.nowinandroid.core.testing.util.DefaultRoborazziOptions
+import com.google.samples.apps.nowinandroid.feature.bookmarks.impl.navigation.LocalSnackbarHostState
 import com.google.samples.apps.nowinandroid.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -121,9 +121,7 @@ class SnackbarScreenshotTests {
 
     @Test
     fun phone_noSnackbar() {
-        val snackbarHostState = SnackbarHostState()
         testSnackbarScreenshotWithSize(
-            snackbarHostState,
             400.dp,
             500.dp,
             "snackbar_compact_medium_noSnackbar",
@@ -133,13 +131,11 @@ class SnackbarScreenshotTests {
 
     @Test
     fun snackbarShown_phone() {
-        val snackbarHostState = SnackbarHostState()
         testSnackbarScreenshotWithSize(
-            snackbarHostState,
             400.dp,
             500.dp,
             "snackbar_compact_medium",
-        ) {
+        ) { snackbarHostState ->
             snackbarHostState.showSnackbar(
                 "This is a test snackbar message",
                 actionLabel = "Action Label",
@@ -150,13 +146,11 @@ class SnackbarScreenshotTests {
 
     @Test
     fun snackbarShown_foldable() {
-        val snackbarHostState = SnackbarHostState()
         testSnackbarScreenshotWithSize(
-            snackbarHostState,
             600.dp,
             600.dp,
             "snackbar_medium_medium",
-        ) {
+        ) { snackbarHostState ->
             snackbarHostState.showSnackbar(
                 "This is a test snackbar message",
                 actionLabel = "Action Label",
@@ -167,13 +161,11 @@ class SnackbarScreenshotTests {
 
     @Test
     fun snackbarShown_tablet() {
-        val snackbarHostState = SnackbarHostState()
         testSnackbarScreenshotWithSize(
-            snackbarHostState,
             900.dp,
             900.dp,
             "snackbar_expanded_expanded",
-        ) {
+        ) { snackbarHostState ->
             snackbarHostState.showSnackbar(
                 "This is a test snackbar message",
                 actionLabel = "Action Label",
@@ -182,19 +174,20 @@ class SnackbarScreenshotTests {
         }
     }
 
-    @OptIn(ExperimentalMaterial3AdaptiveApi::class)
     private fun testSnackbarScreenshotWithSize(
-        snackbarHostState: SnackbarHostState,
         width: Dp,
         height: Dp,
         screenshotName: String,
-        action: suspend () -> Unit,
+        action: suspend (snackbarHostState: SnackbarHostState) -> Unit,
     ) {
         lateinit var scope: CoroutineScope
+        val snackbarHostState = SnackbarHostState()
         composeTestRule.setContent {
             CompositionLocalProvider(
                 // Replaces images with placeholders
                 LocalInspectionMode provides true,
+                LocalSnackbarHostState provides snackbarHostState,
+
             ) {
                 scope = rememberCoroutineScope()
 
@@ -210,7 +203,6 @@ class SnackbarScreenshotTests {
                             )
                             NiaApp(
                                 appState = appState,
-                                snackbarHostState = snackbarHostState,
                                 showSettingsDialog = false,
                                 onSettingsDismissed = {},
                                 onTopAppBarActionClick = {},
@@ -229,7 +221,7 @@ class SnackbarScreenshotTests {
         }
 
         scope.launch {
-            action()
+            action(snackbarHostState)
         }
 
         composeTestRule.onRoot()

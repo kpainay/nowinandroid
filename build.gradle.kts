@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-
-        // Android Build Server
-        maven { url = uri("../nowinandroid-prebuilts/m2repository") }
-    }
-    dependencies {
-        classpath(libs.google.oss.licenses.plugin) {
-            exclude(group = "com.google.protobuf")
-        }
-    }
-
-}
-
 /*
  * By listing all the plugins used throughout all subprojects in the root project build script, it
  * ensures that the build script classpath remains the same for all projects. This avoids potential
@@ -52,7 +36,8 @@ plugins {
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.roborazzi) apply false
-    alias(libs.plugins.secrets) apply false
+    alias(libs.plugins.google.osslicenses) apply false
     alias(libs.plugins.room) apply false
-    alias(libs.plugins.module.graph) apply true // Plugin applied to allow module graph generation
+    alias(libs.plugins.spotless) apply false
+    alias(libs.plugins.nowinandroid.root)
 }
